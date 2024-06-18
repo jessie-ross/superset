@@ -433,6 +433,7 @@ class BaseReportState:
             pdf=pdf_data,
             description=self._report_schedule.description,
             csv=csv_data,
+            google_sheets_href=google_sheets_href,
             embedded_data=embedded_data,
             header_data=header_data,
         )
