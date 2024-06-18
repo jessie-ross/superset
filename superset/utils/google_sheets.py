@@ -71,3 +71,6 @@ def upload_df_to_new_sheet(name: str, df: pd.DataFrame) -> str:
     )
     spreadsheet.share(**current_app.config["GOOGLE_SHEETS_EXPORT_SHARE_PERMISSIONS"])
     return spreadsheet.id
+
+def spreadsheet_id_to_href(id: str) -> str:
+    return f'https://docs.google.com/spreadsheets/d/{id}/'
