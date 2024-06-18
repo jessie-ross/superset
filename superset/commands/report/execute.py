@@ -70,6 +70,7 @@ from superset.utils import json
 from superset.utils.core import HeaderDataType, override_user
 from superset.utils.csv import get_chart_csv_data, get_chart_dataframe
 from superset.utils.decorators import logs_context
+from superset.utils.google_sheets import upload_df_to_new_sheet, spreadsheet_id_to_href
 from superset.utils.pdf import build_pdf_from_screenshots
 from superset.utils.screenshots import ChartScreenshot, DashboardScreenshot
 from superset.utils.urls import get_url_path
@@ -304,6 +305,16 @@ class BaseReportState:
             raise ReportScheduleCsvFailedError()
         return dataframe
 
+    def _get_google_sheets_href(self, *, sheet_name) -> str:
+        """
+        Return an href to a Google Sheets spreadsheet containing the data.
+        """
+        return spreadsheet_id_to_href(
+                upload_df_to_new_sheet(
+                    sheet_name,
+                    self._get_embedded_data(),
+                    ))
+
     def _update_query_context(self) -> None:
         """
         Update chart query context.
@@ -353,6 +364,7 @@ class BaseReportState:
         :raises: ReportScheduleScreenshotFailedError
         """
         csv_data = None
+        google_sheets_href = None
         screenshot_data = []
         pdf_data = None
         embedded_data = None
@@ -398,11 +410,9 @@ class BaseReportState:
                 and self._report_schedule.report_format == \
                 ReportDataFormat.GOOGLE_SHEETS
             ):
-                pass
-                # TODO: add this method
-                # google_sheet_link = self._get_google_sheet_link()
-                # if not google_sheet_link:
-                #     error_text = "Unexpected missing google sheet link"
+                google_sheet_href = self._get_google_sheets_href(sheet_name=name)
+                if not google_sheet_href:
+                    error_text = "Unexpected missing google sheet href"
             if error_text:
                 return NotificationContent(
                     name=self._report_schedule.name,
