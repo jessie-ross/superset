@@ -378,6 +378,16 @@ class BaseReportState:
                 csv_data = self._get_csv_data()
                 if not csv_data:
                     error_text = "Unexpected missing csv file"
+            elif (
+                self._report_schedule.chart
+                and self._report_schedule.report_format == \
+                ReportDataFormat.GOOGLE_SHEETS
+            ):
+                pass
+                # TODO: add this method
+                # google_sheet_link = self._get_google_sheet_link()
+                # if not google_sheet_link:
+                #     error_text = "Unexpected missing google sheet link"
             if error_text:
                 return NotificationContent(
                     name=self._report_schedule.name,
@@ -405,6 +415,7 @@ class BaseReportState:
                     f"{self._report_schedule.dashboard.dashboard_title}"
                 )
 
+        # TODO: Add google sheet link into content
         return NotificationContent(
             name=name,
             url=url,

@@ -76,6 +76,7 @@ class ReportDataFormat(StrEnum):
     PDF = "PDF"
     PNG = "PNG"
     CSV = "CSV"
+    GOOGLE_SHEETS = "GOOGLE_SHEETS"
     TEXT = "TEXT"
 
 
