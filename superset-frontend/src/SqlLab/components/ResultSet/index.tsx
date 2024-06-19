@@ -80,6 +80,12 @@ import {
   reRunQuery,
 } from 'src/SqlLab/actions/sqlLab';
 import { prepareCopyToClipboardTabularData } from 'src/utils/common';
+import useLogAction from 'src/logger/useLogAction';
+import {
+  LOG_ACTIONS_SQLLAB_COPY_RESULT_TO_CLIPBOARD,
+  LOG_ACTIONS_SQLLAB_CREATE_CHART,
+  LOG_ACTIONS_SQLLAB_DOWNLOAD_CSV,
+} from 'src/logger/LogUtils';
 import ExploreCtasResultsButton from '../ExploreCtasResultsButton';
 import ExploreResultsButton from '../ExploreResultsButton';
 import HighlightedSql from '../HighlightedSql';
@@ -179,6 +185,7 @@ const ResultSet = ({
         'dbId',
         'tab',
         'sql',
+        'sqlEditorId',
         'templateParams',
         'schema',
         'rows',
@@ -209,6 +216,7 @@ const ResultSet = ({
 
   const history = useHistory();
   const dispatch = useDispatch();
+  const logAction = useLogAction({ queryId, sqlEditorId: query.sqlEditorId });
 
   const reRunQueryIfSessionTimeoutErrorOnMount = useCallback(() => {
     if (
@@ -266,7 +274,7 @@ const ResultSet = ({
     const { results } = query;
 
     const openInNewWindow = clickEvent.metaKey;
-
+    logAction(LOG_ACTIONS_SQLLAB_CREATE_CHART, {});
     if (results?.query_id) {
       const key = await postFormData(results.query_id, 'query', {
         ...EXPLORE_CHART_DEFAULT,
@@ -318,8 +326,10 @@ const ResultSet = ({
         label: t('CSV'),
         key: 'csv',
         icon: <Icons.FileOutlined />,
-        onClick: () =>
+        onClick: () => {
+          logAction(LOG_ACTIONS_SQLLAB_DOWNLOAD_CSV, {})
           window.open(getExportCsvUrl(query.id), '_blank')?.focus(),
+        }
       });
       if (isFeatureEnabled(FeatureFlag.GoogleSheetsExport)) {
         exportMenuItems.push({
@@ -380,6 +390,9 @@ const ResultSet = ({
                 </Button>
               }
               hideTooltip
+              onCopyEnd={() =>
+                logAction(LOG_ACTIONS_SQLLAB_COPY_RESULT_TO_CLIPBOARD, {})
+              }
             />
           </ResultSetButtons>
           {search && (
