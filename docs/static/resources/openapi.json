@@ -7121,7 +7121,7 @@
             "type": "array"
           },
           "report_format": {
-            "enum": ["PNG", "CSV", "TEXT"],
+            "enum": ["PNG", "CSV", "TEXT", "GOOGLE_SHEETS"],
             "type": "string"
           },
           "selected_tabs": {
@@ -7841,7 +7841,7 @@
             "type": "array"
           },
           "report_format": {
-            "enum": ["PNG", "CSV", "TEXT"],
+            "enum": ["PNG", "CSV", "TEXT", "GOOGLE_SHEETS"],
             "type": "string"
           },
           "sql": {

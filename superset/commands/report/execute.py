@@ -70,6 +70,7 @@ from superset.utils import json
 from superset.utils.core import HeaderDataType, override_user
 from superset.utils.csv import get_chart_csv_data, get_chart_dataframe
 from superset.utils.decorators import logs_context
+from superset.utils.google_sheets import upload_df_to_new_sheet, spreadsheet_id_to_href
 from superset.utils.pdf import build_pdf_from_screenshots
 from superset.utils.screenshots import ChartScreenshot, DashboardScreenshot
 from superset.utils.urls import get_url_path
@@ -304,6 +305,16 @@ class BaseReportState:
             raise ReportScheduleCsvFailedError()
         return dataframe
 
+    def _get_google_sheets_href(self, *, sheet_name) -> str:
+        """
+        Return an href to a Google Sheets spreadsheet containing the data.
+        """
+        return spreadsheet_id_to_href(
+                upload_df_to_new_sheet(
+                    sheet_name,
+                    self._get_embedded_data(),
+                    ))
+
     def _update_query_context(self) -> None:
         """
         Update chart query context.
@@ -353,12 +364,28 @@ class BaseReportState:
         :raises: ReportScheduleScreenshotFailedError
         """
         csv_data = None
+        google_sheets_href = None
         screenshot_data = []
         pdf_data = None
         embedded_data = None
         error_text = None
         header_data = self._get_log_data()
         url = self._get_url(user_friendly=True)
+
+        if self._report_schedule.email_subject:
+            name = self._report_schedule.email_subject
+        else:
+            if self._report_schedule.chart:
+                name = (
+                    f"{self._report_schedule.name}: "
+                    f"{self._report_schedule.chart.slice_name}"
+                )
+            else:
+                name = (
+                    f"{self._report_schedule.name}: "
+                    f"{self._report_schedule.dashboard.dashboard_title}"
+                )
+
         if (
             feature_flag_manager.is_feature_enabled("ALERTS_ATTACH_REPORTS")
             or self._report_schedule.type == ReportScheduleType.REPORT
@@ -378,6 +405,14 @@ class BaseReportState:
                 csv_data = self._get_csv_data()
                 if not csv_data:
                     error_text = "Unexpected missing csv file"
+            elif (
+                self._report_schedule.chart
+                and self._report_schedule.report_format == \
+                ReportDataFormat.GOOGLE_SHEETS
+            ):
+                google_sheet_href = self._get_google_sheets_href(sheet_name=name)
+                if not google_sheet_href:
+                    error_text = "Unexpected missing google sheet href"
             if error_text:
                 return NotificationContent(
                     name=self._report_schedule.name,
@@ -391,20 +426,6 @@ class BaseReportState:
         ):
             embedded_data = self._get_embedded_data()
 
-        if self._report_schedule.email_subject:
-            name = self._report_schedule.email_subject
-        else:
-            if self._report_schedule.chart:
-                name = (
-                    f"{self._report_schedule.name}: "
-                    f"{self._report_schedule.chart.slice_name}"
-                )
-            else:
-                name = (
-                    f"{self._report_schedule.name}: "
-                    f"{self._report_schedule.dashboard.dashboard_title}"
-                )
-
         return NotificationContent(
             name=name,
             url=url,
@@ -412,6 +433,7 @@ class BaseReportState:
             pdf=pdf_data,
             description=self._report_schedule.description,
             csv=csv_data,
+            google_sheets_href=google_sheets_href,
             embedded_data=embedded_data,
             header_data=header_data,
         )

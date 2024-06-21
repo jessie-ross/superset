@@ -174,6 +174,10 @@ const FORMAT_OPTIONS = {
     label: t('Send as CSV'),
     value: 'CSV',
   },
+  googleSheets: {
+    label: t('Send as Google Sheets link'),
+    value: 'GOOGLE_SHEETS',
+  },
   txt: {
     label: t('Send as text'),
     value: 'TEXT',
@@ -487,6 +491,15 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
   const isEditMode = alert !== null;
   const formatOptionEnabled =
     isFeatureEnabled(FeatureFlag.AlertsAttachReports) || isReport;
+  let formatOptionsKeys = []
+  if (contentType === 'dashboard') {
+    formatOptionsKeys = ['pdf', 'png']
+  } else if (TEXT_BASED_VISUALIZATION_TYPES.includes(chartVizType)) {
+    // If chart is of text based viz type: show text format options
+    formatOptionsKeys = Object.keys(FORMAT_OPTIONS)
+  } else {
+    formatOptionsKeys = ['pdf', 'png', 'csv', 'googleSheets']
+  }
 
   const [notificationAddState, setNotificationAddState] =
     useState<NotificationAddStatus>('active');
@@ -1588,15 +1601,7 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
                   ariaLabel={t('Select format')}
                   onChange={onFormatChange}
                   value={reportFormat}
-                  options={
-                    contentType === 'dashboard'
-                      ? ['pdf', 'png'].map(key => FORMAT_OPTIONS[key])
-                      : /* If chart is of text based viz type: show text
-                  format option */
-                        TEXT_BASED_VISUALIZATION_TYPES.includes(chartVizType)
-                        ? Object.values(FORMAT_OPTIONS)
-                        : ['pdf', 'png', 'csv'].map(key => FORMAT_OPTIONS[key])
-                  }
+                  options={formatOptionsKeys.map(key => FORMAT_OPTIONS[key])}
                   placeholder={t('Select format')}
                 />
               </>

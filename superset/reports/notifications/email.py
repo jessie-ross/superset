@@ -130,6 +130,21 @@ class EmailNotification(BaseNotification):  # pylint: disable=too-few-public-met
         else:
             html_table = ""
 
+        
+        if self._content.google_sheets_href:
+            html_google_sheets_link = textwrap.dedent(f'''\
+                <b>
+                    <a href="{self._content.google_sheets_href}" 
+                       target="_blank"> 
+                       View data in Google Sheets
+                    </a>
+                </b>
+                <br />''')
+        else:
+            html_google_sheets_link = ''
+                    
+                
+
         call_to_action = __(app.config["EMAIL_REPORTS_CTA"])
         img_tags = []
         for msgid in images.keys():
@@ -159,6 +174,7 @@ class EmailNotification(BaseNotification):  # pylint: disable=too-few-public-met
               <body>
                 <div>{description}</div>
                 <br>
+                {html_google_sheets_link}
                 <b><a href="{self._content.url}">{call_to_action}</a></b><p></p>
                 {html_table}
                 {img_tag}

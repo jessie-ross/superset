@@ -261,6 +261,9 @@ function ReportModal({
           <StyledRadio value={NotificationFormats.CSV}>
             {t('Formatted CSV attached in email')}
           </StyledRadio>
+          <StyledRadio value={NotificationFormats.GoogleSheets}>
+            {t('Formatted Google Sheet linked in email')}
+          </StyledRadio>
         </StyledRadioGroup>
       </div>
     </>
